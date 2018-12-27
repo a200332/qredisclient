@@ -18,7 +18,6 @@
 namespace RedisClient {
 
 class AbstractTransporter;
-class CommandExecutor;
 
 typedef QMap<int, int> DatabaseList;
 
@@ -193,14 +192,14 @@ class Connection : public QObject {
    * @brief command
    * @param cmd
    */
-  void command(const Command &cmd);
+  QFuture<Response> command(const Command &cmd);
 
   /**
    * @brief Execute command without callback in async mode.
    * @param rawCmd
    * @param db
    */
-  void command(QList<QByteArray> rawCmd, int db = -1);
+  QFuture<Response> command(QList<QByteArray> rawCmd, int db = -1);
 
   /**
    * @brief Execute command with callback in async mode.
@@ -209,8 +208,9 @@ class Connection : public QObject {
    * @param callback
    * @param db
    */
-  void command(QList<QByteArray> rawCmd, QObject *owner,
-               RedisClient::Command::Callback callback, int db = -1);
+  QFuture<Response> command(QList<QByteArray> rawCmd, QObject *owner,
+                            RedisClient::Command::Callback callback,
+                            int db = -1);
 
   /**
    * @brief commandSync
@@ -226,15 +226,6 @@ class Connection : public QObject {
    * @return
    */
   Response commandSync(QList<QByteArray> rawCmd, int db = -1);
-
-  /*
-   * Aliases for ^ function
-   */
-  Response commandSync(QString cmd, int db = -1);
-  Response commandSync(QString cmd, QString arg1, int db = -1);
-  Response commandSync(QString cmd, QString arg1, QString arg2, int db = -1);
-  Response commandSync(QString cmd, QString arg1, QString arg2, QString arg3,
-                       int db = -1);
 
   /**
    * @brief CollectionCallback
@@ -264,10 +255,11 @@ class Connection : public QObject {
       const ScanCommand &cmd, IncrementalCollectionCallback callback);
 
   /**
-   * @brief runCommand - Low level commands execution API
+   * @brief runCommand
    * @param cmd
+   * @return QFuture<Response>
    */
-  virtual void runCommand(const Command &cmd);
+  virtual QFuture<Response> runCommand(const Command &cmd);
 
   /**
    * @brief waitForIdle - Wait until all commands in queue will be processed
@@ -279,7 +271,7 @@ class Connection : public QObject {
    * @brief create new connection object with same settings
    * @return
    */
-  QSharedPointer<Connection> clone() const;
+  virtual QSharedPointer<Connection> clone() const;
 
   /*
    * Low level functions for modification
